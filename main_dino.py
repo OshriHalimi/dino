@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import cvar_pyutils.debugging_tools
 import argparse
 import os
 import sys
@@ -126,13 +127,23 @@ def get_args_parser():
     parser.add_argument("--dist_url", default="env://", type=str, help="""url used to set up
         distributed training; see https://pytorch.org/docs/stable/distributed.html""")
     parser.add_argument("--local_rank", default=0, type=int, help="Please ignore and do not set this argument.")
+
+    # For debug
+    parser.add_argument('--debug', action='store_true', help='do debug')
+    parser.add_argument('--debug_port', default=3030, type=int, help='for debug')
+    parser.add_argument('--debug_ip', type=str, help='for debug')
     return parser
+
+
 
 
 def train_dino(args):
     utils.init_distributed_mode(args)
+    if args.debug and dist.get_rank() == 0:
+        cvar_pyutils.debugging_tools.set_remote_debugger(args.debug_ip, args.debug_port)
+
     utils.fix_random_seeds(args.seed)
-    print("git:\n  {}\n".format(utils.get_sha()))
+    # print("git:\n  {}\n".format(utils.get_sha()))
     print("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
     cudnn.benchmark = True
 
